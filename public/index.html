@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#090817">
+    <meta name="description" content="Enter Rivalken: a free 3D multiplayer racing game. Tune your car, master the circuit, and race against drivers and AI.">
+    <title>Rivalken — Race Beyond Limits</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="wordmark" href="/" aria-label="Rivalken home">
+          <span class="wordmark-icon">R</span>
+          <span>RIVAL<span class="wordmark-light">KEN</span></span>
+        </a>
+        <nav class="main-nav" aria-label="Main navigation">
+          <a class="nav-link active" href="#experience"><span aria-hidden="true">⌂</span><span class="nav-label">Home</span></a>
+          <a class="nav-link" href="#game-modes"><span aria-hidden="true">◈</span><span class="nav-label">Game modes</span></a>
+          <a class="nav-link" href="#garage"><span aria-hidden="true">▰</span><span class="nav-label">Garage</span></a>
+          <a class="nav-link" href="#leaderboards"><span aria-hidden="true">☆</span><span class="nav-label">Leaderboards</span></a>
+          <button class="nav-link settings-trigger" id="settings-open" type="button"><span aria-hidden="true">⚙</span><span class="nav-label">Settings</span></button>
+        </nav>
+        <a class="header-cta" href="/play">PLAY NOW <span aria-hidden="true">▶</span></a>
+      </header>
+
+      <main>
+        <section class="hero" id="experience">
+          <div class="hero-copy">
+            <div class="status-pill"><span class="pulse-dot"></span> FREE TO PLAY · ALWAYS</div>
+            <h1>RIVAL<br><span>KEN</span></h1>
+            <p class="hero-tagline">RACE · COMPETE · BECOME A LEGEND</p>
+            <p class="hero-description">Build your ride. Master every corner. Take on drivers and AI in a free 3D racing game.</p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="/play"><span aria-hidden="true">▶</span> PLAY NOW</a>
+              <a class="button button-secondary" href="#game-modes">EXPLORE MODES <span aria-hidden="true">↓</span></a>
+            </div>
+            <div class="hero-social-proof">
+              <p><strong>Up to 6 drivers on the grid.</strong><br>AI fills every open seat.</p>
+            </div>
+          </div>
+
+          <div class="hero-art" aria-label="Original Rivalken race car artwork">
+            <div class="art-glow"></div>
+            <svg class="hero-car" viewBox="0 0 760 360" role="img" aria-labelledby="car-title">
+              <title id="car-title">A fictional violet racing car on the Rivalken circuit</title>
+              <defs>
+                <linearGradient id="body" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#f0a8ff"/><stop offset=".37" stop-color="#a42cff"/><stop offset="1" stop-color="#4f08aa"/></linearGradient>
+                <linearGradient id="glass" x1="0" x2="1"><stop stop-color="#3d345b"/><stop offset=".55" stop-color="#14162c"/><stop offset="1" stop-color="#645b83"/></linearGradient>
+                <linearGradient id="road" x1="0" x2="1"><stop stop-color="#10121f"/><stop offset=".53" stop-color="#242339"/><stop offset="1" stop-color="#10121f"/></linearGradient>
+                <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#1689f5"/><stop offset=".59" stop-color="#77c4ff"/><stop offset="1" stop-color="#ffb5ce"/></linearGradient>
+                <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feGaussianBlur stdDeviation="13"/></filter>
+                <filter id="neon"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              </defs>
+              <path d="M0 0h760v198H0z" fill="url(#sky)"/>
+              <path d="M0 118l53-28 37 17 58-49 37 34 57-48 59 63 42-39 49 32 39-58 42 46 37-30 50 52 48-40 53 49 48-35 52 42v69H0z" fill="#d9eaff" opacity=".44"/>
+              <path d="M0 179l47-10 26 11 19-30 16 28 24 6 25-43 24 47 28-14 20-31 12 38 29-8 22-38 15 42 35-8 19-47 20 57 30-7 24-35 14 43 33-10 15-51 26 59 29-17 20-34 20 44 31-4 19-29 17 34v68H0z" fill="#32407e" opacity=".77"/>
+              <path d="M0 189h760v33H0z" fill="#2f2761" opacity=".72"/>
+              <g fill="#282d63" opacity=".88">
+                <path d="M82 187v-54h32v54zm41 0v-78h43v78zm53 0v-41h34v41zm46 0v-96h46v96zm58 0v-61h28v61zm41 0v-109h51v109zm62 0v-74h39v74zm51 0v-126h47v126zm58 0v-61h37v61zm49 0v-98h53v98zm63 0v-58h41v58zm51 0v-112h32v112z"/>
+              </g>
+              <g fill="#b9ddff" opacity=".64">
+                <path d="M131 119h6v9h-6zm14 0h6v9h-6zm-14 17h6v9h-6zm-82 10h5v7h-5zm171-32h6v8h-6zm14 0h6v8h-6zm-14 16h6v8h-6zm155-20h7v10h-7zm17 0h7v10h-7zm-17 19h7v10h-7zm111-33h7v10h-7zm17 0h7v10h-7zm-17 19h7v10h-7zm116 0h6v8h-6zm14 0h6v8h-6z"/>
+              </g>
+              <path d="M434 0h326v22H434z" fill="#0b1024" opacity=".93"/>
+              <path d="M577 13h183v10H577z" fill="#d137ff" filter="url(#neon)"/>
+              <path d="M598 23v109m117-109v111" stroke="#262343" stroke-width="9"/>
+              <path d="M0 202c144-18 280-13 393-3s229 16 367-4v36H0z" fill="#313c5e"/>
+              <path d="M0 210c183-14 333-6 468 4s198 4 292-13" fill="none" stroke="#a1d9ff" stroke-width="3" opacity=".8"/>
+              <path d="M14 221h732v25H14z" fill="#dc3cff" opacity=".18"/>
+              <g fill="#f3f5ff" opacity=".92"><path d="M0 190h12v10H0zm18 0h12v10H18zm18 0h12v10H36zm18 0h12v10H54z"/><path d="M682 184h12v10h-12zm18 0h12v10h-12zm18 0h12v10h-12zm18 0h12v10h-12z"/></g>
+              <ellipse cx="395" cy="292" rx="277" ry="30" fill="#030609" opacity=".8" filter="url(#shadow)"/>
+              <path d="M37 307C192 257 514 252 718 310" fill="none" stroke="#cc42ff" stroke-opacity=".12" stroke-width="104"/>
+              <path d="M37 307C192 257 514 252 718 310" fill="none" stroke="#71808b" stroke-opacity=".18" stroke-width="92"/>
+              <path d="M37 307C192 257 514 252 718 310" fill="none" stroke="url(#road)" stroke-width="76"/>
+              <path d="M45 307C209 267 530 262 712 309" fill="none" stroke="#f4eaff" stroke-opacity=".78" stroke-width="2" stroke-dasharray="14 18"/>
+              <path d="M130 241l21-35 77-28 68-72q14-15 36-17l110-4q24 0 44 14l80 57 77 17 42 39-2 34-65 12-29-35q-13-15-34-15h-22q-23 0-35 17l-15 24-191-2-26-31q-11-13-30-13h-24q-19 0-30 16l-20 27-65 3z" fill="#09200f" opacity=".8" transform="translate(0 10)"/>
+              <path d="M118 228l22-39 76-24 72-76q14-15 36-17l110-5q26 0 46 15l78 56 77 17 42 39-2 32-64 12-31-34q-13-15-34-15h-21q-23 0-35 17l-16 23-190-2-26-30q-11-13-30-13h-23q-19 0-30 16l-21 27-64 4z" fill="url(#body)" stroke="#f7c5ff" stroke-opacity=".78" stroke-width="2"/>
+              <path d="M281 164l31-64q8-15 25-16l94-4q16 0 31 11l62 49-126 0-117 24z" fill="url(#glass)" stroke="#d6ceff" stroke-opacity=".7" stroke-width="2"/>
+              <path d="M394 84l-6 79M277 169l240-7" fill="none" stroke="#f1b3ff" stroke-opacity=".7" stroke-width="3"/>
+              <path d="M161 194l55-18 25 6-24 25-63 7z" fill="#172028"/>
+              <path d="M569 178l58 11 25 20-54-4-29-12z" fill="#b8eff1"/>
+              <path d="M577 207l67 5 1 7-63 7z" fill="#ff625b"/>
+              <path d="M187 227l41-2M639 218l25-3" stroke="#101b20" stroke-width="9"/>
+              <path d="M250 232l34-3m284-5 37 2" stroke="#f0adff" stroke-width="5"/>
+              <path d="M332 78l-8-28h18l18 25m116-1 19-25h17l-9 30" fill="none" stroke="#e2a5ff" stroke-width="5" stroke-linecap="round"/>
+              <g transform="translate(253 239)"><ellipse cy="9" rx="46" ry="48" fill="#070a0d"/><ellipse cy="8" rx="28" ry="30" fill="#69747a"/><ellipse cy="8" rx="18" ry="19" fill="#192128"/><circle cy="8" r="6" fill="#d887ff"/><path d="M0-19v12m19 15H7M-19 8h12M-12-6l8 8m16 0 8-8m-8 26-8-8m-16 0-8 8" stroke="#bec6c4" stroke-width="4"/></g>
+              <g transform="translate(568 230)"><ellipse cy="8" rx="45" ry="47" fill="#070a0d"/><ellipse cy="8" rx="27" ry="29" fill="#69747a"/><ellipse cy="8" rx="17" ry="18" fill="#192128"/><circle cy="8" r="6" fill="#d887ff"/><path d="M0-18v11m18 15H7M-18 8h11M-12-5l8 8m16 0 8-8m-8 25-8-8m-16 0-8 8" stroke="#bec6c4" stroke-width="4"/></g>
+              <path d="M184 220l57-2m376 9 44 2" stroke="#edffcd" stroke-width="3" opacity=".8"/>
+            </svg>
+            <div class="art-bottomline"><span>01 — RIVALKEN CIRCUIT</span><span>THROTTLE / BRAKE / REPEAT</span></div>
+            <div class="art-stamp"><span>03</span><small>LAPS<br>TO GO</small></div>
+            <div class="art-caption"><span class="caption-dot"></span> PULSE SPORT <span class="caption-divider">/</span> STOCK BUILD</div>
+          </div>
+
+          <div class="hero-index"><span>01</span><i></i><span>03</span></div>
+        </section>
+
+        <section class="stats-row" id="game-modes" aria-label="Available game modes">
+          <div class="mode-heading"><span class="section-kicker">CHOOSE YOUR RACE</span><h2>Game modes</h2></div>
+          <div class="mode-grid">
+            <a class="mode-card mode-race" href="/play"><span class="mode-icon" aria-hidden="true">🏁</span><span><b>RACING</b><small>Three laps. One finish line.</small></span><i aria-hidden="true">↗</i></a>
+            <a class="mode-card mode-multiplayer" href="/play"><span class="mode-icon" aria-hidden="true">♟</span><span><b>MULTIPLAYER</b><small>Up to six drivers. AI fills open seats.</small></span><i aria-hidden="true">↗</i></a>
+            <a class="mode-card mode-garage" href="/play#garage-tab"><span class="mode-icon" aria-hidden="true">⚙</span><span><b>GARAGE</b><small>Choose and customize your car.</small></span><i aria-hidden="true">↗</i></a>
+          </div>
+        </section>
+
+        <section class="stats-row" aria-label="Game features">
+          <div class="stat"><strong>06</strong><span>DRIVERS PER GRID</span></div>
+          <div class="stat"><strong>03</strong><span>LAPS PER RACE</span></div>
+          <div class="stat"><strong>AI</strong><span>ALWAYS FILLS THE GRID</span></div>
+          <div class="stat stat-note"><span class="status-light"></span><span>READY WHEN YOU ARE</span></div>
+        </section>
+
+        <section class="feature-section" id="garage">
+          <div class="section-heading">
+            <div><span class="section-kicker">MAKE IT YOURS</span><h2>Your garage.<br><span>Your call.</span></h2></div>
+            <p>Every race moves your career forward. Build up your collection, tune your ride, and find the setup that suits your style.</p>
+          </div>
+          <div class="feature-grid">
+            <article class="feature-card car-card">
+              <div class="feature-card-top"><span class="card-icon">↗</span><span>01 / COLLECTION</span></div>
+              <div class="mini-cars" aria-hidden="true"><span class="mini-car mini-car-one">◆</span><span class="mini-car mini-car-two">◆</span><span class="mini-car mini-car-three">◆</span></div>
+              <h3>Find your kind of fast.</h3>
+              <p>Discover original builds made for different ways of driving. Finish races to unlock your next favorite.</p>
+              <a href="/play" class="card-link">EXPLORE THE GARAGE <span>↗</span></a>
+            </article>
+            <article class="feature-card tune-card">
+              <div class="feature-card-top"><span class="card-icon">⌁</span><span>02 / YOUR SETUP</span></div>
+              <div class="tune-visual" aria-hidden="true"><span class="tune-line"></span><span class="tune-node"></span><span class="tune-line tune-line-two"></span><span class="tune-node tune-node-two"></span><span class="tune-ring">+</span></div>
+              <h3>Dial in the details.</h3>
+              <p>Make the car yours with paint, wheels, finishes, decals, spoilers, and performance upgrades.</p>
+              <a href="/play" class="card-link">BUILD YOUR CAR <span>↗</span></a>
+            </article>
+            <article class="feature-card race-card">
+              <div class="feature-card-top"><span class="card-icon">⌖</span><span>03 / RACECRAFT</span></div>
+              <div class="track-visual" aria-hidden="true">
+                <svg viewBox="0 0 270 130"><path d="M52 91c-20-4-25-24-11-39l19-20c13-14 37-18 55-8l23 13c9 5 20 7 30 3l34-13c22-8 43 2 47 20 3 13-5 25-20 31l-39 15c-16 6-34 4-47-5l-20-13c-10-6-21-5-29 3l-10 10c-9 8-19 11-32 8z" fill="none" stroke="#394a48" stroke-width="18"/><path d="M52 91c-20-4-25-24-11-39l19-20c13-14 37-18 55-8l23 13c9 5 20 7 30 3l34-13c22-8 43 2 47 20 3 13-5 25-20 31l-39 15c-16 6-34 4-47-5l-20-13c-10-6-21-5-29 3l-10 10c-9 8-19 11-32 8z" fill="none" stroke="#c0ff7b" stroke-width="2" stroke-dasharray="8 8"/></svg>
+              </div>
+              <h3>Earn every corner.</h3>
+              <p>Brake for the turns, stay on the racing line, and keep your grip when the pace picks up.</p>
+              <a href="#how-to-play" class="card-link">LEARN THE BASICS <span>↗</span></a>
+            </article>
+          </div>
+        </section>
+
+        <section class="leaderboard-section" id="leaderboards">
+          <div class="leaderboard-heading">
+            <div><span class="section-kicker">PRIVATE BY DESIGN</span><h2>Your career stays yours.</h2></div>
+            <a class="text-link" href="/play">JOIN THE RACE <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="leaderboard-panel">
+            <div class="leaderboard-empty">No public leaderboard. Your garage and career statistics stay in your private encrypted profile.</div>
+          </div>
+        </section>
+
+        <section class="how-section" id="how-to-play">
+          <div class="how-card">
+            <div class="how-copy"><span class="section-kicker">THE FEEL OF THE DRIVE</span><h2>Fast is a feeling.<br><span>Control is a skill.</span></h2><p>Keep it smooth on the straights. Set up early for a corner. If you carry too much speed, the tires give up grip—ease off, steer through, then get back on the throttle.</p><a class="button button-primary" href="/play">TAKE YOUR FIRST LAP <span aria-hidden="true">↗</span></a></div>
+            <div class="controls-card">
+              <div class="controls-card-title"><span>QUICK CONTROLS</span><span class="live-key"><i></i> IN GAME</span></div>
+              <div class="control-row"><span><kbd>W</kbd> <kbd>↑</kbd></span><span>ACCELERATE</span></div>
+              <div class="control-row"><span><kbd>A</kbd> <kbd>D</kbd></span><span>STEER</span></div>
+              <div class="control-row"><span><kbd>S</kbd> <kbd>SPACE</kbd></span><span>BRAKE</span></div>
+              <div class="control-row"><span><kbd>−</kbd></span><span>FUEL PANEL</span></div>
+              <div class="controls-tip">The best lap starts before the turn.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="closing-banner">
+          <div><span class="section-kicker">THE LIGHTS ARE ON</span><h2>See you on the grid.</h2></div>
+          <a class="button button-primary" href="/play">PLAY RIVALKEN <span aria-hidden="true">↗</span></a>
+          <div class="banner-orb" aria-hidden="true"></div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <a class="wordmark footer-brand" href="/" aria-label="Rivalken home"><span class="wordmark-icon">R</span><span>RIVAL<span class="wordmark-light">KEN</span></span></a>
+        <span>ORIGINAL CARS. YOUR LINE. YOUR RACE.</span>
+        <a href="/play">ENTER THE GAME ↗</a>
+        <a href="/privacy">PRIVACY</a>
+        <small>© 2026 RIVALKEN</small>
+      </footer>
+    </div>
+    <dialog class="settings-dialog" id="settings-dialog" aria-labelledby="settings-title">
+      <form method="dialog" class="settings-panel">
+        <div class="settings-heading"><div><span class="section-kicker">YOUR EXPERIENCE</span><h2 id="settings-title">Settings</h2></div><button class="settings-close" aria-label="Close settings">×</button></div>
+        <label class="setting-row"><span><b>Reduced motion</b><small>Limit decorative movement and animations.</small></span><input id="setting-motion" type="checkbox"><i></i></label>
+        <label class="setting-row"><span><b>High contrast</b><small>Increase text and panel contrast.</small></span><input id="setting-contrast" type="checkbox"><i></i></label>
+        <p class="settings-footnote">Settings are saved on this device.</p>
+      </form>
+    </dialog>
+    <script src="/landing.js" defer></script>
+  </body>
+</html>

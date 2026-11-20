@@ -1,0 +1,80 @@
+[
+  {
+    "id": "pulse",
+    "name": "Pulse Sport",
+    "category": "SPORT",
+    "price": 0,
+    "unlockLevel": 1,
+    "acceleration": 1,
+    "topSpeed": 1,
+    "handling": 1,
+    "braking": 1,
+    "fuelCapacity": 58,
+    "fuelLPer100Km": 8.9
+  },
+  {
+    "id": "summit",
+    "name": "Summit GT",
+    "category": "GRAND TOURER",
+    "price": 1400,
+    "unlockLevel": 2,
+    "acceleration": 1.08,
+    "topSpeed": 1.08,
+    "handling": 1.04,
+    "braking": 1.04,
+    "fuelCapacity": 62,
+    "fuelLPer100Km": 10.1
+  },
+  {
+    "id": "forge",
+    "name": "Rally Forge",
+    "category": "RALLY",
+    "price": 2300,
+    "unlockLevel": 3,
+    "acceleration": 1.12,
+    "topSpeed": 1.02,
+    "handling": 1.18,
+    "braking": 1.16,
+    "fuelCapacity": 57,
+    "fuelLPer100Km": 11.4
+  },
+  {
+    "id": "vector",
+    "name": "Vector Touring",
+    "category": "TOURING",
+    "price": 3600,
+    "unlockLevel": 4,
+    "acceleration": 1.15,
+    "topSpeed": 1.1,
+    "handling": 1.1,
+    "braking": 1.12,
+    "fuelCapacity": 64,
+    "fuelLPer100Km": 10.7
+  },
+  {
+    "id": "flux",
+    "name": "Flux Prototype",
+    "category": "FUTURE",
+    "price": 5800,
+    "unlockLevel": 6,
+    "acceleration": 1.25,
+    "topSpeed": 1.24,
+    "handling": 1.14,
+    "braking": 1.15,
+    "fuelCapacity": 54,
+    "fuelLPer100Km": 13.6
+  },
+  {
+    "id": "torque",
+    "name": "Torque Muscle",
+    "category": "MUSCLE",
+    "price": 4500,
+    "unlockLevel": 5,
+    "acceleration": 1.2,
+    "topSpeed": 1.1,
+    "handling": 0.96,
+    "braking": 1.08,
+    "fuelCapacity": 70,
+    "fuelLPer100Km": 15.2
+  }
+]
