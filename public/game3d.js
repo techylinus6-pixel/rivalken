@@ -476,7 +476,7 @@ function addMountainBackdrop() {
     [285, 155], [290, 50], [285, -60], [240, -185], [130, -245],
     [0, -260], [-130, -240], [-245, -190], [-295, -80], [-290, 70]
   ];
-  const geometry = new THREE.IcosahedronGeometry(1, 1);
+  const geometry = new THREE.ConeGeometry(1, 1, 14, 3);
   const material = new THREE.MeshStandardMaterial({ color: "#65716d", roughness: 1 });
   const mountainMesh = new THREE.InstancedMesh(geometry, material, peaks.length);
   const dummy = new THREE.Object3D();
@@ -489,7 +489,7 @@ function addMountainBackdrop() {
     dummy.scale.set(radius, height, radius * 0.78);
     dummy.updateMatrix();
     mountainMesh.setMatrixAt(index, dummy.matrix);
-    mountainMesh.setColorAt(index, new THREE.Color().setHSL(0.29 + (index % 5) * 0.012, 0.16, 0.48 + (index % 3) * 0.035));
+    mountainMesh.setColorAt(index, new THREE.Color().setHSL(0.29 + (index % 5) * 0.012, 0.2, 0.38 + (index % 3) * 0.035));
   });
 
   mountainMesh.receiveShadow = true;
