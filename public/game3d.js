@@ -53,6 +53,15 @@ const circuitCurve = new THREE.CatmullRomCurve3([
   [-172, 14], [-175, -15], [-158, -35], [-160, -50],
   [-120, -85], [-60, -97]
 ].map(([x, z]) => new THREE.Vector3(x * 1.18, 0, z * 1.18)), true, "centripetal");
+const trackSafetySegments = (() => {
+  const points = circuitCurve.getSpacedPoints(1100);
+  return points.slice(0, -1).map((start, index) => {
+    const end = points[index + 1];
+    const dx = end.x - start.x;
+    const dz = end.z - start.z;
+    return { x: start.x, z: start.z, dx, dz, lengthSquared: dx * dx + dz * dz };
+  });
+})();
 
 function createAsphaltTexture() {
   const canvas = document.createElement("canvas");
@@ -335,6 +344,19 @@ function trackTangent(t) {
   return circuitCurve.getTangentAt((t % 1 + 1) % 1).setY(0).normalize();
 }
 
+function hasTrackClearance(point, minimumDistance) {
+  const minimumDistanceSquared = minimumDistance * minimumDistance;
+  for (const segment of trackSafetySegments) {
+    const projection = Math.max(0, Math.min(1,
+      ((point.x - segment.x) * segment.dx + (point.z - segment.z) * segment.dz) / segment.lengthSquared
+    ));
+    const dx = point.x - (segment.x + segment.dx * projection);
+    const dz = point.z - (segment.z + segment.dz * projection);
+    if (dx * dx + dz * dz < minimumDistanceSquared) return false;
+  }
+  return true;
+}
+
 function addRing(innerOffset, outerOffset, segments, material, y = 0.05) {
   const positions = [];
   const uvs = [];
@@ -404,6 +426,17 @@ function addBox(parent, material, dimensions, position, castShadow = true) {
 
 function addInstancedScenery() {
   const treeCount = 220;
+  const treePositions = [];
+  for (let candidate = 0; treePositions.length < treeCount && candidate < treeCount * 20; candidate += 1) {
+    const t = (candidate * 0.61803398875) % 1;
+    const position = trackPoint(t, 20 + ((candidate * 13) % 76));
+    if (!hasTrackClearance(position, 22)) continue;
+    treePositions.push({
+      position,
+      scale: 0.85 + ((candidate * 7) % 8) / 10,
+      variation: candidate
+    });
+  }
   const treeMeshes = [
     new THREE.InstancedMesh(new THREE.CylinderGeometry(0.35, 0.55, 2.1, 7), materials.treeTrunk, treeCount),
     new THREE.InstancedMesh(new THREE.ConeGeometry(2.2, 4.3, 12), materials.treeOne, treeCount),
@@ -411,23 +444,21 @@ function addInstancedScenery() {
     new THREE.InstancedMesh(new THREE.ConeGeometry(1.22, 3.3, 12), materials.treeOne, treeCount)
   ];
   const dummy = new THREE.Object3D();
-  for (let index = 0; index < treeCount; index += 1) {
-    const t = (index * 0.61803398875) % 1;
-    const scale = 0.85 + ((index * 7) % 8) / 10;
-    const position = trackPoint(t, 20 + ((index * 13) % 76));
+  treePositions.forEach(({ position, scale, variation }, index) => {
     const heights = [1.05, 3.1, 5.25, 7.25];
     treeMeshes.forEach((mesh, meshIndex) => {
       dummy.position.set(position.x, heights[meshIndex] * scale, position.z);
-      dummy.scale.set(scale * (0.9 + (index % 4) * 0.04), scale, scale * (0.9 + (index % 3) * 0.05));
-      dummy.rotation.y = index * 0.37;
+      dummy.scale.set(scale * (0.9 + (variation % 4) * 0.04), scale, scale * (0.9 + (variation % 3) * 0.05));
+      dummy.rotation.y = variation * 0.37;
       dummy.updateMatrix();
       mesh.setMatrixAt(index, dummy.matrix);
       if (meshIndex > 0) {
-        mesh.setColorAt(index, new THREE.Color().setHSL(0.28 + (index % 8) * 0.009, 0.2, 0.84 + (index % 3) * 0.025));
+        mesh.setColorAt(index, new THREE.Color().setHSL(0.28 + (variation % 8) * 0.009, 0.2, 0.84 + (variation % 3) * 0.025));
       }
     });
-  }
+  });
   for (const mesh of treeMeshes) {
+    mesh.count = treePositions.length;
     mesh.castShadow = false;
     mesh.receiveShadow = false;
     mesh.instanceMatrix.needsUpdate = true;
@@ -437,16 +468,20 @@ function addInstancedScenery() {
 
   const rockCount = 58;
   const rocks = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1, 0), materials.rock, rockCount);
-  for (let index = 0; index < rockCount; index += 1) {
-    const t = (index * 0.754877666) % 1;
-    const position = trackPoint(t, 13 + ((index * 11) % 15));
-    const scale = 0.36 + (index % 4) * 0.11;
+  let rockIndex = 0;
+  for (let candidate = 0; rockIndex < rockCount && candidate < rockCount * 20; candidate += 1) {
+    const t = (candidate * 0.754877666) % 1;
+    const position = trackPoint(t, 13 + ((candidate * 11) % 15));
+    if (!hasTrackClearance(position, 14.5)) continue;
+    const scale = 0.36 + (candidate % 4) * 0.11;
     dummy.position.set(position.x, 0.35, position.z);
-    dummy.rotation.set(index, index * 0.3, index * 0.7);
+    dummy.rotation.set(candidate, candidate * 0.3, candidate * 0.7);
     dummy.scale.set(scale * 1.4, scale * 0.7, scale * 0.9);
     dummy.updateMatrix();
-    rocks.setMatrixAt(index, dummy.matrix);
+    rocks.setMatrixAt(rockIndex, dummy.matrix);
+    rockIndex += 1;
   }
+  rocks.count = rockIndex;
   rocks.castShadow = false;
   rocks.instanceMatrix.needsUpdate = true;
   scene.add(rocks);
