@@ -133,22 +133,24 @@ function createSkyTexture() {
   canvas.height = 256;
   const context = canvas.getContext("2d");
   const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, "#527894");
-  gradient.addColorStop(0.42, "#91b5c5");
-  gradient.addColorStop(0.78, "#d0d5c7");
+  gradient.addColorStop(0, "#416987");
+  gradient.addColorStop(0.42, "#82aec3");
+  gradient.addColorStop(0.78, "#ddd9ca");
   gradient.addColorStop(1, "#c8d6ca");
   context.fillStyle = gradient;
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.filter = "blur(7px)";
   for (let index = 0; index < 14; index += 1) {
     const x = (index * 97) % canvas.width;
-    const y = 45 + (index * 31) % 92;
+    const y = 38 + (index * 31) % 92;
     const width = 24 + (index * 13) % 48;
     const height = 4 + (index % 4) * 2;
-    context.fillStyle = `rgba(255,255,255,${0.1 + (index % 4) * 0.025})`;
+    context.fillStyle = `rgba(255,255,255,${0.18 + (index % 4) * 0.035})`;
     for (const offset of [-canvas.width, 0, canvas.width]) {
       context.beginPath();
       context.ellipse(x + offset, y, width, height, 0, 0, Math.PI * 2);
+      context.ellipse(x + offset - width * 0.32, y - 3, width * 0.48, height * 0.82, 0, 0, Math.PI * 2);
+      context.ellipse(x + offset + width * 0.34, y - 2, width * 0.42, height * 0.9, 0, 0, Math.PI * 2);
       context.fill();
     }
   }
@@ -379,9 +381,9 @@ function addInstancedScenery() {
   const treeCount = 180;
   const treeMeshes = [
     new THREE.InstancedMesh(new THREE.CylinderGeometry(0.35, 0.55, 2.1, 7), materials.treeTrunk, treeCount),
-    new THREE.InstancedMesh(new THREE.ConeGeometry(2.2, 4.3, 9), materials.treeOne, treeCount),
-    new THREE.InstancedMesh(new THREE.ConeGeometry(1.75, 4.1, 9), materials.treeTwo, treeCount),
-    new THREE.InstancedMesh(new THREE.ConeGeometry(1.22, 3.3, 9), materials.treeOne, treeCount)
+    new THREE.InstancedMesh(new THREE.ConeGeometry(2.2, 4.3, 12), materials.treeOne, treeCount),
+    new THREE.InstancedMesh(new THREE.ConeGeometry(1.75, 4.1, 12), materials.treeTwo, treeCount),
+    new THREE.InstancedMesh(new THREE.ConeGeometry(1.22, 3.3, 12), materials.treeOne, treeCount)
   ];
   const dummy = new THREE.Object3D();
   for (let index = 0; index < treeCount; index += 1) {
@@ -391,7 +393,8 @@ function addInstancedScenery() {
     const heights = [1.05, 3.1, 5.25, 7.25];
     treeMeshes.forEach((mesh, meshIndex) => {
       dummy.position.set(position.x, heights[meshIndex] * scale, position.z);
-      dummy.scale.setScalar(scale);
+      dummy.scale.set(scale * (0.9 + (index % 4) * 0.04), scale, scale * (0.9 + (index % 3) * 0.05));
+      dummy.rotation.y = index * 0.37;
       dummy.updateMatrix();
       mesh.setMatrixAt(index, dummy.matrix);
       if (meshIndex > 0) {
@@ -407,12 +410,12 @@ function addInstancedScenery() {
     scene.add(mesh);
   }
 
-  const rockCount = 70;
+  const rockCount = 58;
   const rocks = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1, 0), materials.rock, rockCount);
   for (let index = 0; index < rockCount; index += 1) {
     const t = (index * 0.754877666) % 1;
     const position = trackPoint(t, 13 + ((index * 11) % 15));
-    const scale = 0.5 + (index % 4) * 0.18;
+    const scale = 0.36 + (index % 4) * 0.11;
     dummy.position.set(position.x, 0.35, position.z);
     dummy.rotation.set(index, index * 0.3, index * 0.7);
     dummy.scale.set(scale * 1.4, scale * 0.7, scale * 0.9);
