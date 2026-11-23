@@ -93,7 +93,7 @@ function createGrassTexture() {
   canvas.width = 256;
   canvas.height = 256;
   const context = canvas.getContext("2d");
-  context.fillStyle = "#667b58";
+  context.fillStyle = "#526943";
   context.fillRect(0, 0, canvas.width, canvas.height);
   let seed = 44921;
   for (let index = 0; index < 6200; index += 1) {
@@ -101,7 +101,7 @@ function createGrassTexture() {
     const x = seed % 256;
     seed = (seed * 1664525 + 1013904223) >>> 0;
     const y = seed % 256;
-    const shade = 72 + (seed % 48);
+    const shade = 55 + (seed % 50);
     context.fillStyle = `rgba(${35 + (shade >> 2)},${shade},${30 + (shade >> 2)},${0.13 + (seed % 10) / 100})`;
     context.fillRect(x, y, 1 + (seed % 2), 1);
   }
@@ -132,7 +132,6 @@ const grassTexture = createGrassTexture();
 let socket;
 let playerId = null;
 let lastHudUpdate = 0;
-let animationFrameId = null;
 let raceStartedAt = null;
 let raceFinishedAt = null;
 let allowReconnect = false;
@@ -166,10 +165,10 @@ connectionLabel.textContent = "READY TO RACE";
 liveDot.classList.add("idle");
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 gameRoot.replaceChildren(renderer.domElement);
 
 const scene = new THREE.Scene();
@@ -193,8 +192,8 @@ sun.shadow.bias = -0.00015;
 scene.add(sun);
 
 const garagePreviewNode = document.getElementById("garage-preview");
-const garageRenderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: "low-power" });
-garageRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1));
+const garageRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "low-power" });
+garageRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
 garageRenderer.outputColorSpace = THREE.SRGBColorSpace;
 garageRenderer.domElement.setAttribute("aria-label", "Rotating 3D car preview");
 garagePreviewNode.prepend(garageRenderer.domElement);
@@ -316,64 +315,8 @@ function addBox(parent, material, dimensions, position, castShadow = true) {
   return mesh;
 }
 
-function addSkyDome() {
-  const geometry = new THREE.SphereGeometry(780, 32, 16);
-  const positions = geometry.getAttribute("position");
-  const colors = new Float32Array(positions.count * 3);
-  const horizon = new THREE.Color("#dce4d8");
-  const zenith = new THREE.Color("#78a8c3");
-  for (let index = 0; index < positions.count; index += 1) {
-    const height = positions.getY(index) / 780;
-    const amount = THREE.MathUtils.smoothstep(height, -0.02, 0.9);
-    const color = horizon.clone().lerp(zenith, amount);
-    colors[index * 3] = color.r;
-    colors[index * 3 + 1] = color.g;
-    colors[index * 3 + 2] = color.b;
-  }
-  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-  const sky = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
-    vertexColors: true,
-    side: THREE.BackSide,
-    fog: false,
-    depthWrite: false
-  }));
-  sky.renderOrder = -1;
-  sky.frustumCulled = false;
-  scene.add(sky);
-}
-
-function addCloudLayer() {
-  const cloudCount = 28;
-  const clouds = new THREE.InstancedMesh(
-    new THREE.SphereGeometry(1, 12, 8),
-    new THREE.MeshBasicMaterial({ color: "#f1f3eb", transparent: true, opacity: 0.78, depthWrite: false }),
-    cloudCount
-  );
-  const dummy = new THREE.Object3D();
-  for (let index = 0; index < cloudCount; index += 1) {
-    const angle = index * 2.399963;
-    const radius = 310 + (index * 47) % 310;
-    dummy.position.set(
-      Math.cos(angle) * radius,
-      105 + (index * 19) % 48,
-      Math.sin(angle) * radius * 0.72
-    );
-    dummy.rotation.y = angle;
-    dummy.scale.set(12 + (index * 7) % 16, 2.4 + (index % 4) * 0.7, 7 + (index * 3) % 9);
-    dummy.updateMatrix();
-    clouds.setMatrixAt(index, dummy.matrix);
-    clouds.setColorAt(index, new THREE.Color(index % 5 === 0 ? "#dfe8e3" : "#ffffff"));
-  }
-  clouds.instanceMatrix.needsUpdate = true;
-  if (clouds.instanceColor) clouds.instanceColor.needsUpdate = true;
-  clouds.castShadow = false;
-  clouds.receiveShadow = false;
-  scene.add(clouds);
-}
-
 function addInstancedScenery() {
-  const treeCount = 150;
-  const foliageColors = ["#294f3b", "#356346", "#48794c", "#568454"].map((color) => new THREE.Color(color));
+  const treeCount = 180;
   const treeMeshes = [
     new THREE.InstancedMesh(new THREE.CylinderGeometry(0.35, 0.55, 2.1, 7), materials.treeTrunk, treeCount),
     new THREE.InstancedMesh(new THREE.ConeGeometry(2.2, 4.3, 9), materials.treeOne, treeCount),
@@ -388,22 +331,15 @@ function addInstancedScenery() {
     const heights = [1.05, 3.1, 5.25, 7.25];
     treeMeshes.forEach((mesh, meshIndex) => {
       dummy.position.set(position.x, heights[meshIndex] * scale, position.z);
-      dummy.rotation.y = index * 1.73;
-      dummy.scale.set(
-        scale * (meshIndex === 0 ? 1 : 0.85 + (index % 4) * 0.08),
-        scale * (meshIndex === 0 ? 1 : 0.82 + ((index * 3) % 5) * 0.08),
-        scale * (meshIndex === 0 ? 1 : 0.84 + ((index * 7) % 4) * 0.09)
-      );
+      dummy.scale.setScalar(scale);
       dummy.updateMatrix();
       mesh.setMatrixAt(index, dummy.matrix);
-      if (meshIndex > 0) mesh.setColorAt(index, foliageColors[(index + meshIndex * 2) % foliageColors.length]);
     });
   }
   for (const mesh of treeMeshes) {
-    mesh.castShadow = false;
-    mesh.receiveShadow = false;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
     mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     scene.add(mesh);
   }
 
@@ -419,24 +355,23 @@ function addInstancedScenery() {
     dummy.updateMatrix();
     rocks.setMatrixAt(index, dummy.matrix);
   }
-  rocks.castShadow = false;
+  rocks.castShadow = true;
   rocks.instanceMatrix.needsUpdate = true;
   scene.add(rocks);
 
-  const hillCount = 22;
-  const hills = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 12, 8), materials.hill, hillCount);
+  const hillCount = 18;
+  const hills = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 2), materials.hill, hillCount);
   for (let index = 0; index < hillCount; index += 1) {
     const angle = (index / hillCount) * Math.PI * 2 + 0.12;
-    const radius = 330 + (index * 17) % 34;
-    const height = 4 + (index * 3) % 4;
+    const radius = 260 + (index * 17) % 44;
+    const height = 8 + (index * 7) % 9;
     dummy.position.set(Math.cos(angle) * radius, height * 0.32 - 0.3, Math.sin(angle) * radius * 0.78);
     dummy.rotation.set(index * 0.09, angle, index * 0.17);
-    dummy.scale.set(28 + (index % 4) * 6, height, 22 + (index % 3) * 5);
+    dummy.scale.set(18 + (index % 4) * 5, height, 14 + (index % 3) * 4);
     dummy.updateMatrix();
     hills.setMatrixAt(index, dummy.matrix);
   }
-  hills.castShadow = false;
-  hills.receiveShadow = false;
+  hills.receiveShadow = true;
   hills.instanceMatrix.needsUpdate = true;
   scene.add(hills);
 }
@@ -469,8 +404,7 @@ function addMountainBackdrop() {
     snowMesh.setMatrixAt(index, dummy.matrix);
   });
 
-  mountainMesh.castShadow = false;
-  mountainMesh.receiveShadow = false;
+  mountainMesh.receiveShadow = true;
   mountainMesh.instanceMatrix.needsUpdate = true;
   snowMesh.instanceMatrix.needsUpdate = true;
   scene.add(mountainMesh, snowMesh);
@@ -519,9 +453,7 @@ function addPitBuilding() {
 }
 
 function buildTrack() {
-  addSkyDome();
-  addCloudLayer();
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(850, 800), materials.grass);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(660, 600), materials.grass);
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -0.32;
   ground.receiveShadow = true;
@@ -544,8 +476,8 @@ function buildTrack() {
     }
     const curve = new THREE.CatmullRomCurve3(railPath, true, "centripetal");
     const rail = new THREE.Mesh(new THREE.TubeGeometry(curve, 900, 0.38, 7, true), materials.rail);
-    rail.castShadow = false;
-    rail.receiveShadow = false;
+    rail.castShadow = true;
+    rail.receiveShadow = true;
     scene.add(rail);
 
     const postCount = 180;
@@ -558,7 +490,7 @@ function buildTrack() {
       dummy.updateMatrix();
       posts.setMatrixAt(index, dummy.matrix);
     }
-    posts.castShadow = false;
+    posts.castShadow = true;
     posts.instanceMatrix.needsUpdate = true;
     scene.add(posts);
   }
@@ -898,23 +830,17 @@ function updateProfileDisplay() {
 }
 
 function disposeCar(root) {
-  const geometries = new Set();
-  const materials = new Set();
-  const textures = new Set();
   root.traverse((object) => {
     if (object.isMesh || object.isLine) {
-      geometries.add(object.geometry);
-      if (Array.isArray(object.material)) object.material.forEach((material) => materials.add(material));
-      else materials.add(object.material);
+      object.geometry.dispose();
+      if (Array.isArray(object.material)) object.material.forEach((material) => material.dispose());
+      else object.material.dispose();
     }
     if (object.isSprite) {
-      if (object.material.map) textures.add(object.material.map);
-      materials.add(object.material);
+      object.material.map?.dispose();
+      object.material.dispose();
     }
   });
-  geometries.forEach((geometry) => geometry.dispose());
-  textures.forEach((texture) => texture.dispose());
-  materials.forEach((material) => material.dispose());
 }
 
 function updateGaragePreview(index, color, customization = {}) {
@@ -1204,7 +1130,14 @@ function updateCars() {
   for (const [id, root] of cars) {
     if (activeIds.has(id)) continue;
     scene.remove(root);
-    disposeCar(root);
+    root.traverse((object) => {
+      if (object.isMesh) {
+        object.geometry.dispose();
+        object.material.dispose();
+      }
+    });
+    root.userData.label.material.map.dispose();
+    root.userData.label.material.dispose();
     cars.delete(id);
   }
 
@@ -1706,26 +1639,12 @@ function updateHud() {
 function resize() {
   const { width, height } = gameRoot.getBoundingClientRect();
   if (!width || !height) return;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
   renderer.setSize(width, height, false);
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
 }
 
-function scheduleFrame() {
-  if (animationFrameId === null && !document.hidden) {
-    animationFrameId = requestAnimationFrame(frame);
-  }
-}
-
 function frame(time) {
-  animationFrameId = null;
-  if (document.hidden) return;
-  if (time - (frame.lastRenderTime || 0) < 1000 / 45) {
-    scheduleFrame();
-    return;
-  }
-  frame.lastRenderTime = time;
   const delta = Math.min(0.05, (time - (frame.lastTime || time)) / 1000);
   frame.lastTime = time;
   updateCamera(delta);
@@ -1735,7 +1654,7 @@ function frame(time) {
     updateHud();
     lastHudUpdate = time;
   }
-  scheduleFrame();
+  requestAnimationFrame(frame);
 }
 
 buildTrack();
@@ -1743,16 +1662,9 @@ resize();
 renderer.render(scene, camera);
 updateHud();
 window.addEventListener("resize", resize);
-document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) {
-    frame.lastTime = 0;
-    frame.lastRenderTime = 0;
-    scheduleFrame();
-  }
-});
 updateLobby();
 updateScreens();
 if (!supabaseClient) {
   authFeedback.textContent = "Supabase is not configured. Copy .env.example to .env, add the project URL and public anon key, then restart.";
 }
-scheduleFrame();
+requestAnimationFrame(frame);
