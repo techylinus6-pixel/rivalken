@@ -42,6 +42,7 @@ const keys = new Set();
 const MAX_CARS = 6;
 const TRACK_LENGTH = 5200;
 const ROAD_HALF_WIDTH = 7.2;
+const FRAME_INTERVAL = 1000 / 60;
 const cars = new Map();
 const circuitCurve = new THREE.CatmullRomCurve3([
   [10, -95], [80, -85], [135, -65], [170, -36], [180, -5],
@@ -126,8 +127,56 @@ function createGrassTexture() {
   return texture;
 }
 
+function createSkyTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 256;
+  const context = canvas.getContext("2d");
+  const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, "#527894");
+  gradient.addColorStop(0.42, "#91b5c5");
+  gradient.addColorStop(0.78, "#d0d5c7");
+  gradient.addColorStop(1, "#c8d6ca");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.filter = "blur(7px)";
+  for (let index = 0; index < 14; index += 1) {
+    const x = (index * 97) % canvas.width;
+    const y = 45 + (index * 31) % 92;
+    const width = 24 + (index * 13) % 48;
+    const height = 4 + (index % 4) * 2;
+    context.fillStyle = `rgba(255,255,255,${0.1 + (index % 4) * 0.025})`;
+    for (const offset of [-canvas.width, 0, canvas.width]) {
+      context.beginPath();
+      context.ellipse(x + offset, y, width, height, 0, 0, Math.PI * 2);
+      context.fill();
+    }
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+function createGlowTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 128;
+  canvas.height = 128;
+  const context = canvas.getContext("2d");
+  const gradient = context.createRadialGradient(64, 64, 4, 64, 64, 64);
+  gradient.addColorStop(0, "rgba(255,255,255,0.8)");
+  gradient.addColorStop(0.45, "rgba(255,255,255,0.3)");
+  gradient.addColorStop(1, "rgba(255,255,255,0)");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
 const asphaltTexture = createAsphaltTexture();
 const grassTexture = createGrassTexture();
+const skyTexture = createSkyTexture();
+const glowTexture = createGlowTexture();
 
 let socket;
 let playerId = null;
@@ -165,25 +214,34 @@ connectionLabel.textContent = "READY TO RACE";
 liveDot.classList.add("idle");
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.08;
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = THREE.PCFShadowMap;
 gameRoot.replaceChildren(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color("#a8c3c0");
-scene.fog = new THREE.Fog("#9cb3aa", 260, 650);
-const camera = new THREE.PerspectiveCamera(62, 16 / 9, 0.1, 850);
-camera.position.set(0, 260, 330);
-camera.lookAt(0, 0, 45);
+scene.background = new THREE.Color("#c8d6ca");
+scene.fog = new THREE.Fog("#c8d6ca", 250, 660);
+const skyDome = new THREE.Mesh(
+  new THREE.SphereGeometry(850, 32, 20),
+  new THREE.MeshBasicMaterial({ map: skyTexture, side: THREE.BackSide, depthWrite: false, fog: false })
+);
+skyDome.renderOrder = -1;
+skyDome.frustumCulled = false;
+scene.add(skyDome);
+const camera = new THREE.PerspectiveCamera(62, 16 / 9, 0.1, 1200);
+camera.position.set(0, 175, 300);
+camera.lookAt(0, 0, 35);
 
 const hemiLight = new THREE.HemisphereLight("#d9efff", "#37432a", 2.0);
 scene.add(hemiLight);
 const sun = new THREE.DirectionalLight("#fff1d2", 3.2);
 sun.position.set(-34, 65, -22);
 sun.castShadow = true;
-sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.mapSize.set(512, 512);
 sun.shadow.camera.left = -240;
 sun.shadow.camera.right = 240;
 sun.shadow.camera.top = 220;
@@ -193,8 +251,10 @@ scene.add(sun);
 
 const garagePreviewNode = document.getElementById("garage-preview");
 const garageRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "low-power" });
-garageRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+garageRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
 garageRenderer.outputColorSpace = THREE.SRGBColorSpace;
+garageRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+garageRenderer.toneMappingExposure = 1.08;
 garageRenderer.domElement.setAttribute("aria-label", "Rotating 3D car preview");
 garagePreviewNode.prepend(garageRenderer.domElement);
 const garageScene = new THREE.Scene();
@@ -224,7 +284,7 @@ garageCamera.position.set(7.5, 4.1, 8.5);
 garageCamera.lookAt(0, 0.75, 0);
 
 const materials = {
-  grass: new THREE.MeshStandardMaterial({ map: grassTexture, color: "#c5d0ba", roughness: 1 }),
+  grass: new THREE.MeshStandardMaterial({ map: grassTexture, color: "#cbd8b5", roughness: 1 }),
   road: new THREE.MeshStandardMaterial({ map: asphaltTexture, color: "#f0f0eb", roughness: 0.98 }),
   curb: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.86 }),
   runoff: new THREE.MeshStandardMaterial({ color: "#9b9d98", roughness: 0.94 }),
@@ -334,12 +394,16 @@ function addInstancedScenery() {
       dummy.scale.setScalar(scale);
       dummy.updateMatrix();
       mesh.setMatrixAt(index, dummy.matrix);
+      if (meshIndex > 0) {
+        mesh.setColorAt(index, new THREE.Color().setHSL(0.28 + (index % 8) * 0.009, 0.2, 0.84 + (index % 3) * 0.025));
+      }
     });
   }
   for (const mesh of treeMeshes) {
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     scene.add(mesh);
   }
 
@@ -355,7 +419,7 @@ function addInstancedScenery() {
     dummy.updateMatrix();
     rocks.setMatrixAt(index, dummy.matrix);
   }
-  rocks.castShadow = true;
+  rocks.castShadow = false;
   rocks.instanceMatrix.needsUpdate = true;
   scene.add(rocks);
 
@@ -370,9 +434,11 @@ function addInstancedScenery() {
     dummy.scale.set(18 + (index % 4) * 5, height, 14 + (index % 3) * 4);
     dummy.updateMatrix();
     hills.setMatrixAt(index, dummy.matrix);
+    hills.setColorAt(index, new THREE.Color().setHSL(0.25 + (index % 5) * 0.012, 0.22, 0.77 + (index % 3) * 0.035));
   }
   hills.receiveShadow = true;
   hills.instanceMatrix.needsUpdate = true;
+  if (hills.instanceColor) hills.instanceColor.needsUpdate = true;
   scene.add(hills);
 }
 
@@ -397,6 +463,7 @@ function addMountainBackdrop() {
     dummy.scale.set(radius, height, radius * 0.78);
     dummy.updateMatrix();
     mountainMesh.setMatrixAt(index, dummy.matrix);
+    mountainMesh.setColorAt(index, new THREE.Color().setHSL(0.49 + (index % 4) * 0.012, 0.12, 0.83 + (index % 3) * 0.035));
 
     dummy.position.y = height * 0.77;
     dummy.scale.set(radius * 0.38, height * 0.42, radius * 0.3);
@@ -406,6 +473,7 @@ function addMountainBackdrop() {
 
   mountainMesh.receiveShadow = true;
   mountainMesh.instanceMatrix.needsUpdate = true;
+  if (mountainMesh.instanceColor) mountainMesh.instanceColor.needsUpdate = true;
   snowMesh.instanceMatrix.needsUpdate = true;
   scene.add(mountainMesh, snowMesh);
 }
@@ -476,7 +544,7 @@ function buildTrack() {
     }
     const curve = new THREE.CatmullRomCurve3(railPath, true, "centripetal");
     const rail = new THREE.Mesh(new THREE.TubeGeometry(curve, 900, 0.38, 7, true), materials.rail);
-    rail.castShadow = true;
+    rail.castShadow = false;
     rail.receiveShadow = true;
     scene.add(rail);
 
@@ -490,7 +558,7 @@ function buildTrack() {
       dummy.updateMatrix();
       posts.setMatrixAt(index, dummy.matrix);
     }
-    posts.castShadow = true;
+    posts.castShadow = false;
     posts.instanceMatrix.needsUpdate = true;
     scene.add(posts);
   }
@@ -576,6 +644,7 @@ function addCarProfile(root, material, outline, depth) {
   geometry.rotateY(Math.PI / 2);
   geometry.translate(-depth / 2, 0, 0);
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.userData.vehicleShadowCaster = true;
   root.add(mesh);
   return mesh;
 }
@@ -605,10 +674,10 @@ function makeCar(car, targetScene = scene) {
   const root = new THREE.Group();
   const paint = new THREE.MeshPhysicalMaterial({
     color: car.color,
-    metalness: finish === "metallic" ? 0.72 : finish === "pearl" ? 0.48 : 0.25,
+    metalness: finish === "metallic" ? 0.76 : finish === "pearl" ? 0.5 : 0.36,
     roughness: finishRoughness,
-    clearcoat: 0.78,
-    clearcoatRoughness: finish === "matte" ? 0.55 : 0.18
+    clearcoat: 0.94,
+    clearcoatRoughness: finish === "matte" ? 0.55 : 0.11
   });
   const accent = new THREE.MeshStandardMaterial({ color: style.accent, metalness: 0.32, roughness: 0.34 });
   const dark = new THREE.MeshStandardMaterial({ color: "#171d23", metalness: 0.12, roughness: 0.52 });
@@ -628,6 +697,23 @@ function makeCar(car, targetScene = scene) {
   const brake = new THREE.MeshStandardMaterial({ color: "#737b7d", metalness: 0.76, roughness: 0.35 });
   const lug = new THREE.MeshStandardMaterial({ color: "#d3d9d4", metalness: 0.82, roughness: 0.24 });
   const interior = new THREE.MeshStandardMaterial({ color: "#101519", roughness: 0.82 });
+  const underglowMaterial = new THREE.MeshBasicMaterial({
+    map: glowTexture,
+    color: car.color,
+    transparent: true,
+    opacity: 0.48,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    toneMapped: false
+  });
+  const underglow = new THREE.Mesh(
+    new THREE.PlaneGeometry(style.width * 1.65, style.length * 1.18),
+    underglowMaterial
+  );
+  underglow.rotation.x = -Math.PI / 2;
+  underglow.position.y = 0.055;
+  root.add(underglow);
   const halfLength = style.length / 2;
   const wheelbase = style.length * 0.62;
   const wheelX = style.width * 0.52;
@@ -796,14 +882,16 @@ function makeCar(car, targetScene = scene) {
   root.add(marker);
   root.traverse((object) => {
     if (object.isMesh) {
-      object.castShadow = true;
-      object.receiveShadow = true;
+      object.castShadow = Boolean(object.userData.vehicleShadowCaster);
+      object.receiveShadow = false;
     }
   });
   root.userData.paint = paint;
   root.userData.rim = rim;
   root.userData.label = marker;
   root.userData.wheels = wheels;
+  root.userData.targetPosition = new THREE.Vector3();
+  root.userData.targetYaw = 0;
   root.userData.lastProgress = car.progress;
   root.userData.gridIndex = car.gridIndex;
   root.userData.initialized = false;
@@ -1147,32 +1235,39 @@ function updateCars() {
       root = makeCar(car);
       cars.set(car.id, root);
     }
-    const t = car.finished ? 0.9999 : (car.lapProgress || 0);
-    const point = trackPoint(t, (Number(car.lane) || 0) * 0.1);
-    const tangent = trackTangent(t);
-    const targetYaw = Math.atan2(tangent.x, tangent.z);
-    if (!root.userData.initialized) {
-      root.position.copy(point);
-      root.rotation.y = targetYaw;
-      root.userData.initialized = true;
-    } else {
-      root.position.lerp(point, 0.24);
-      const difference = Math.atan2(Math.sin(targetYaw - root.rotation.y), Math.cos(targetYaw - root.rotation.y));
-      root.rotation.y += difference * 0.24;
-    }
     const distance = Math.max(0, car.progress - root.userData.lastProgress);
     for (const wheel of root.userData.wheels) wheel.rotation.x += distance / 8;
     root.userData.lastProgress = car.progress;
-    root.position.y = point.y + Math.sin(performance.now() / 78 + (car.gridIndex || 0)) * Math.min(car.speed / 900, 0.045);
+    const t = car.finished ? 0.9999 : (car.lapProgress || 0);
+    const point = trackPoint(t, (Number(car.lane) || 0) * 0.1);
+    const tangent = trackTangent(t);
+    root.userData.targetPosition.copy(point);
+    root.userData.targetYaw = Math.atan2(tangent.x, tangent.z);
+    root.userData.speed = car.speed;
+  }
+}
+
+function animateCars(delta, time) {
+  const smoothing = 1 - Math.exp(-delta * 12);
+  for (const root of cars.values()) {
+    if (!root.userData.initialized) {
+      root.position.copy(root.userData.targetPosition);
+      root.rotation.y = root.userData.targetYaw;
+      root.userData.initialized = true;
+    } else {
+      root.position.lerp(root.userData.targetPosition, smoothing);
+      const difference = Math.atan2(Math.sin(root.userData.targetYaw - root.rotation.y), Math.cos(root.userData.targetYaw - root.rotation.y));
+      root.rotation.y += difference * smoothing;
+    }
+    root.position.y = root.userData.targetPosition.y + Math.sin(time / 78 + (root.userData.gridIndex || 0)) * Math.min(root.userData.speed / 900, 0.045);
   }
 }
 
 function updateCamera(delta) {
-  const player = snapshot.cars.find((car) => car.id === playerId);
-  if (!player) return;
-  const t = player.finished ? 0.9999 : (player.lapProgress || 0);
-  const position = trackPoint(t, (Number(player.lane) || 0) * 0.1);
-  const tangent = trackTangent(t);
+  const playerRoot = cars.get(playerId);
+  if (!playerRoot) return;
+  const tangent = new THREE.Vector3(Math.sin(playerRoot.rotation.y), 0, Math.cos(playerRoot.rotation.y));
+  const position = playerRoot.position;
   const desiredPosition = position.clone().addScaledVector(tangent, -19).add(new THREE.Vector3(0, 12, 0));
   const lookAt = position.clone().addScaledVector(tangent, 13).add(new THREE.Vector3(0, 1.2, 0));
   camera.position.lerp(desiredPosition, 1 - Math.exp(-delta * 2.8));
@@ -1645,8 +1740,15 @@ function resize() {
 }
 
 function frame(time) {
-  const delta = Math.min(0.05, (time - (frame.lastTime || time)) / 1000);
+  if (frame.nextFrameTime !== undefined && time < frame.nextFrameTime) {
+    requestAnimationFrame(frame);
+    return;
+  }
+  const delta = frame.lastTime === undefined ? 0 : Math.min(0.05, (time - frame.lastTime) / 1000);
   frame.lastTime = time;
+  frame.nextFrameTime = (frame.nextFrameTime ?? time) + FRAME_INTERVAL;
+  if (frame.nextFrameTime <= time) frame.nextFrameTime = time + FRAME_INTERVAL;
+  animateCars(delta, time);
   updateCamera(delta);
   renderer.render(scene, camera);
   renderGaragePreview(time, delta);
