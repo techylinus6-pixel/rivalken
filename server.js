@@ -457,6 +457,15 @@ wss.on("connection", (socket, request) => {
     }
     if (message.type === "join") {
       const safeName = String(message.name || "Racer").trim().slice(0, 16);
+      const duplicate = [...players.values()].find((candidate) =>
+        candidate !== player && candidate.name.toLowerCase() === safeName.toLowerCase()
+      );
+      if (duplicate) {
+        players.delete(player.id);
+        fillGrid();
+        socket.close(4001, "Driver already racing");
+        return;
+      }
       if (safeName) player.name = safeName;
       const carIndex = Number(message.carIndex);
       if (Number.isInteger(carIndex) && VEHICLES[carIndex]) player.carIndex = carIndex;
@@ -484,6 +493,7 @@ wss.on("connection", (socket, request) => {
     }
   });
   socket.on("close", () => {
+    if (players.get(player.id) !== player || player.socket !== socket) return;
     players.delete(player.id);
     fillGrid();
   });

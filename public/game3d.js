@@ -1445,7 +1445,14 @@ function connect() {
       socket.close();
     }
   });
-  socket.addEventListener("close", () => {
+  socket.addEventListener("close", (event) => {
+    if (event.code === 4001) {
+      allowReconnect = false;
+      leaveRace();
+      connectionLabel.textContent = "SESSION ACTIVE ELSEWHERE";
+      menuFeedback.textContent = "This driver is already racing in another tab. Close that session before rejoining.";
+      return;
+    }
     if (!allowReconnect) return;
     connectionLabel.textContent = "Connection lost · reconnecting";
     liveDot.classList.add("offline");
