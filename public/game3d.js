@@ -165,15 +165,15 @@ connectionLabel.textContent = "READY TO RACE";
 liveDot.classList.add("idle");
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = THREE.PCFShadowMap;
 gameRoot.replaceChildren(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color("#a8c3c0");
-scene.fog = new THREE.Fog("#9cb3aa", 260, 650);
+scene.background = new THREE.Color("#a9c3b5");
+scene.fog = new THREE.Fog("#a9c3b5", 260, 650);
 const camera = new THREE.PerspectiveCamera(62, 16 / 9, 0.1, 850);
 camera.position.set(0, 260, 330);
 camera.lookAt(0, 0, 45);
@@ -183,7 +183,7 @@ scene.add(hemiLight);
 const sun = new THREE.DirectionalLight("#fff1d2", 3.2);
 sun.position.set(-34, 65, -22);
 sun.castShadow = true;
-sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.mapSize.set(512, 512);
 sun.shadow.camera.left = -240;
 sun.shadow.camera.right = 240;
 sun.shadow.camera.top = 220;
@@ -224,7 +224,7 @@ garageCamera.position.set(7.5, 4.1, 8.5);
 garageCamera.lookAt(0, 0.75, 0);
 
 const materials = {
-  grass: new THREE.MeshStandardMaterial({ map: grassTexture, color: "#c5d0ba", roughness: 1 }),
+  grass: new THREE.MeshStandardMaterial({ map: grassTexture, color: "#d1d8b8", roughness: 1 }),
   road: new THREE.MeshStandardMaterial({ map: asphaltTexture, color: "#f0f0eb", roughness: 0.98 }),
   curb: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.86 }),
   runoff: new THREE.MeshStandardMaterial({ color: "#9b9d98", roughness: 0.94 }),
@@ -232,10 +232,10 @@ const materials = {
   rail: new THREE.MeshStandardMaterial({ color: "#d8d5c7", roughness: 0.65 }),
   darkRail: new THREE.MeshStandardMaterial({ color: "#252c30", roughness: 0.78 }),
   treeTrunk: new THREE.MeshStandardMaterial({ color: "#554331", roughness: 1 }),
-  treeOne: new THREE.MeshStandardMaterial({ color: "#356346", roughness: 1 }),
-  treeTwo: new THREE.MeshStandardMaterial({ color: "#48794c", roughness: 1 }),
-  rock: new THREE.MeshStandardMaterial({ color: "#6d7565", roughness: 1 }),
-  hill: new THREE.MeshStandardMaterial({ color: "#596d4a", roughness: 1 })
+  treeOne: new THREE.MeshStandardMaterial({ color: "#3d6848", roughness: 1 }),
+  treeTwo: new THREE.MeshStandardMaterial({ color: "#5b8754", roughness: 1 }),
+  rock: new THREE.MeshStandardMaterial({ color: "#777d70", roughness: 1 }),
+  hill: new THREE.MeshStandardMaterial({ color: "#657c50", roughness: 1 })
 };
 
 function trackPoint(t, lateral = 0) {
@@ -334,12 +334,17 @@ function addInstancedScenery() {
       dummy.scale.setScalar(scale);
       dummy.updateMatrix();
       mesh.setMatrixAt(index, dummy.matrix);
+      if (meshIndex > 0) {
+        const tint = new THREE.Color().setHSL(0.27 + (index % 7) * 0.008, 0.23, 0.88);
+        mesh.setColorAt(index, tint);
+      }
     });
   }
   for (const mesh of treeMeshes) {
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
     mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     scene.add(mesh);
   }
 
@@ -355,7 +360,7 @@ function addInstancedScenery() {
     dummy.updateMatrix();
     rocks.setMatrixAt(index, dummy.matrix);
   }
-  rocks.castShadow = true;
+  rocks.castShadow = false;
   rocks.instanceMatrix.needsUpdate = true;
   scene.add(rocks);
 
@@ -383,8 +388,8 @@ function addMountainBackdrop() {
     [0, -260], [-130, -240], [-245, -190], [-295, -80], [-290, 70]
   ];
   const geometry = new THREE.ConeGeometry(1, 1, 9);
-  const material = new THREE.MeshStandardMaterial({ color: "#65716d", roughness: 1 });
-  const snowMaterial = new THREE.MeshStandardMaterial({ color: "#c5cfca", roughness: 1 });
+  const material = new THREE.MeshStandardMaterial({ color: "#718782", roughness: 1 });
+  const snowMaterial = new THREE.MeshStandardMaterial({ color: "#d5e0dc", roughness: 1 });
   const mountainMesh = new THREE.InstancedMesh(geometry, material, peaks.length);
   const snowMesh = new THREE.InstancedMesh(new THREE.ConeGeometry(1, 1, 9), snowMaterial, peaks.length);
   const dummy = new THREE.Object3D();
@@ -476,8 +481,8 @@ function buildTrack() {
     }
     const curve = new THREE.CatmullRomCurve3(railPath, true, "centripetal");
     const rail = new THREE.Mesh(new THREE.TubeGeometry(curve, 900, 0.38, 7, true), materials.rail);
-    rail.castShadow = true;
-    rail.receiveShadow = true;
+    rail.castShadow = false;
+    rail.receiveShadow = false;
     scene.add(rail);
 
     const postCount = 180;
@@ -490,7 +495,7 @@ function buildTrack() {
       dummy.updateMatrix();
       posts.setMatrixAt(index, dummy.matrix);
     }
-    posts.castShadow = true;
+    posts.castShadow = false;
     posts.instanceMatrix.needsUpdate = true;
     scene.add(posts);
   }
@@ -804,6 +809,8 @@ function makeCar(car, targetScene = scene) {
   root.userData.rim = rim;
   root.userData.label = marker;
   root.userData.wheels = wheels;
+  root.userData.targetPosition = new THREE.Vector3();
+  root.userData.targetYaw = 0;
   root.userData.lastProgress = car.progress;
   root.userData.gridIndex = car.gridIndex;
   root.userData.initialized = false;
@@ -1147,32 +1154,39 @@ function updateCars() {
       root = makeCar(car);
       cars.set(car.id, root);
     }
-    const t = car.finished ? 0.9999 : (car.lapProgress || 0);
-    const point = trackPoint(t, (Number(car.lane) || 0) * 0.1);
-    const tangent = trackTangent(t);
-    const targetYaw = Math.atan2(tangent.x, tangent.z);
-    if (!root.userData.initialized) {
-      root.position.copy(point);
-      root.rotation.y = targetYaw;
-      root.userData.initialized = true;
-    } else {
-      root.position.lerp(point, 0.24);
-      const difference = Math.atan2(Math.sin(targetYaw - root.rotation.y), Math.cos(targetYaw - root.rotation.y));
-      root.rotation.y += difference * 0.24;
-    }
     const distance = Math.max(0, car.progress - root.userData.lastProgress);
     for (const wheel of root.userData.wheels) wheel.rotation.x += distance / 8;
     root.userData.lastProgress = car.progress;
-    root.position.y = point.y + Math.sin(performance.now() / 78 + (car.gridIndex || 0)) * Math.min(car.speed / 900, 0.045);
+    const t = car.finished ? 0.9999 : (car.lapProgress || 0);
+    const point = trackPoint(t, (Number(car.lane) || 0) * 0.1);
+    const tangent = trackTangent(t);
+    root.userData.targetPosition.copy(point);
+    root.userData.targetYaw = Math.atan2(tangent.x, tangent.z);
+    root.userData.speed = car.speed;
+  }
+}
+
+function animateCars(delta, time) {
+  const smoothing = 1 - Math.exp(-delta * 12);
+  for (const root of cars.values()) {
+    if (!root.userData.initialized) {
+      root.position.copy(root.userData.targetPosition);
+      root.rotation.y = root.userData.targetYaw;
+      root.userData.initialized = true;
+    } else {
+      root.position.lerp(root.userData.targetPosition, smoothing);
+      const difference = Math.atan2(Math.sin(root.userData.targetYaw - root.rotation.y), Math.cos(root.userData.targetYaw - root.rotation.y));
+      root.rotation.y += difference * smoothing;
+    }
+    root.position.y = root.userData.targetPosition.y + Math.sin(time / 78 + (root.userData.gridIndex || 0)) * Math.min(root.userData.speed / 900, 0.045);
   }
 }
 
 function updateCamera(delta) {
-  const player = snapshot.cars.find((car) => car.id === playerId);
-  if (!player) return;
-  const t = player.finished ? 0.9999 : (player.lapProgress || 0);
-  const position = trackPoint(t, (Number(player.lane) || 0) * 0.1);
-  const tangent = trackTangent(t);
+  const playerRoot = cars.get(playerId);
+  if (!playerRoot) return;
+  const tangent = new THREE.Vector3(Math.sin(playerRoot.rotation.y), 0, Math.cos(playerRoot.rotation.y));
+  const position = playerRoot.position;
   const desiredPosition = position.clone().addScaledVector(tangent, -19).add(new THREE.Vector3(0, 12, 0));
   const lookAt = position.clone().addScaledVector(tangent, 13).add(new THREE.Vector3(0, 1.2, 0));
   camera.position.lerp(desiredPosition, 1 - Math.exp(-delta * 2.8));
@@ -1574,7 +1588,11 @@ window.addEventListener("blur", () => {
 setInterval(sendInput, 80);
 
 function updateHud() {
-  const ordered = [...snapshot.cars].sort((a, b) => b.progress - a.progress);
+  const ordered = [...snapshot.cars].sort((a, b) => {
+    if (a.finished && b.finished) return a.finishPlace - b.finishPlace;
+    if (a.finished !== b.finished) return a.finished ? -1 : 1;
+    return b.progress - a.progress || a.gridIndex - b.gridIndex;
+  });
   const me = ordered.find((car) => car.id === playerId);
   const fuelRatio = me ? Math.max(0, Math.min(1, me.fuelLiters / me.fuelCapacity)) : 0;
   document.getElementById("fuel-liters").textContent = me ? Math.max(0, me.fuelLiters).toFixed(1) : "—";
@@ -1647,6 +1665,7 @@ function resize() {
 function frame(time) {
   const delta = Math.min(0.05, (time - (frame.lastTime || time)) / 1000);
   frame.lastTime = time;
+  animateCars(delta, time);
   updateCamera(delta);
   renderer.render(scene, camera);
   renderGaragePreview(time, delta);

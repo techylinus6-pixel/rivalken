@@ -41,6 +41,7 @@ let countdownStartedAt = 0;
 let raceOverAt = 0;
 let raceId = "";
 let raceSequence = 0;
+let finishSequence = 0;
 
 function getCornerProfile(progress) {
   const position = (progress % TRACK_LENGTH) / TRACK_LENGTH;
@@ -148,7 +149,8 @@ function makeCar(id, name, color, isBot = false, index = 0, carIndex = index % V
     throttle: 0,
     braking: false,
     slipping: false,
-    finishedAt: null
+    finishedAt: null,
+    finishPlace: 0
   };
 }
 
@@ -176,6 +178,7 @@ function resetRace(now) {
   raceStartedAt = now + 5000;
   countdownStartedAt = now;
   raceOverAt = 0;
+  finishSequence = 0;
   raceId = randomUUID();
   raceSequence += 1;
   for (const [index, player] of [...players.values()].entries()) {
@@ -187,6 +190,7 @@ function resetRace(now) {
     player.braking = false;
     player.slipping = false;
     player.finishedAt = null;
+    player.finishPlace = 0;
     const vehicle = VEHICLES[player.carIndex] || VEHICLES[0];
     player.fuelCapacity = vehicle.fuelCapacity;
     player.fuelLPer100Km = vehicle.fuelLPer100Km;
@@ -198,6 +202,7 @@ function resetRace(now) {
     bot.progress = 0;
     bot.speed = 0;
     bot.finishedAt = null;
+    bot.finishPlace = 0;
     bot.fuelLiters = bot.fuelCapacity;
   }
 }
@@ -236,7 +241,7 @@ function updateBot(bot, dt, now) {
   bot.progress += bot.speed * dt;
   consumeFuel(bot, bot.progress - previousProgress, target > 0, vehicle);
   bot.lane = Math.sin(now / 2100 + bot.gridIndex * 1.9) * 48;
-  if (bot.progress >= TRACK_LENGTH * LAPS_TO_WIN) bot.finishedAt = now;
+  if (bot.progress >= TRACK_LENGTH * LAPS_TO_WIN) finishCar(bot, now);
 }
 
 function consumeFuel(car, distance, throttle, vehicle) {
@@ -257,15 +262,19 @@ function handleApiRequest(request, response, pathname) {
   sendJson(response, 404, { error: "API route not found." });
 }
 
+function finishCar(car, now) {
+  car.progress = TRACK_LENGTH * LAPS_TO_WIN;
+  car.finishedAt = now;
+  car.finishPlace = ++finishSequence;
+}
+
 function finishPlayer(player, now) {
-  player.progress = TRACK_LENGTH * LAPS_TO_WIN;
-  player.finishedAt = now;
-  const place = 1 + getAllCars().filter((car) => car.id !== player.id && car.finishedAt && car.finishedAt < now).length;
+  finishCar(player, now);
   if (player.socket.readyState === WebSocket.OPEN) {
     player.socket.send(JSON.stringify({
       type: "race-finished",
       raceId,
-      place,
+      place: player.finishPlace,
       reward: { credits: 450, xp: 180 }
     }));
   }
@@ -313,6 +322,7 @@ function updatePlayer(player, dt, now) {
 function sendSnapshots(now) {
   const cars = getAllCars().map(({ socket, input, upgrades, ...car }) => ({
     ...car,
+    finishPlace: car.finishPlace || 0,
     lap: Math.min(LAPS_TO_WIN, Math.floor(car.progress / TRACK_LENGTH) + 1),
     lapProgress: (car.progress % TRACK_LENGTH) / TRACK_LENGTH,
     finished: Boolean(car.finishedAt)
