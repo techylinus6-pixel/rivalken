@@ -430,11 +430,11 @@ function addInstancedScenery() {
   const hills = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 2), materials.hill, hillCount);
   for (let index = 0; index < hillCount; index += 1) {
     const angle = (index / hillCount) * Math.PI * 2 + 0.12;
-    const radius = 260 + (index * 17) % 44;
-    const height = 8 + (index * 7) % 9;
-    dummy.position.set(Math.cos(angle) * radius, height * 0.32 - 0.3, Math.sin(angle) * radius * 0.78);
+    const radius = 345 + (index * 19) % 40;
+    const height = 6 + (index * 5) % 8;
+    dummy.position.set(Math.cos(angle) * radius, height * 0.32 - 0.3, Math.sin(angle) * radius * 0.86);
     dummy.rotation.set(index * 0.09, angle, index * 0.17);
-    dummy.scale.set(18 + (index % 4) * 5, height, 14 + (index % 3) * 4);
+    dummy.scale.set(16 + (index % 4) * 4, height, 12 + (index % 3) * 4);
     dummy.updateMatrix();
     hills.setMatrixAt(index, dummy.matrix);
     hills.setColorAt(index, new THREE.Color().setHSL(0.25 + (index % 5) * 0.012, 0.22, 0.77 + (index % 3) * 0.035));
@@ -524,7 +524,7 @@ function addPitBuilding() {
 }
 
 function buildTrack() {
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(660, 600), materials.grass);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(900, 800), materials.grass);
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -0.32;
   ground.receiveShadow = true;
@@ -1672,7 +1672,13 @@ window.addEventListener("blur", () => {
 setInterval(sendInput, 80);
 
 function updateHud() {
-  const ordered = [...snapshot.cars].sort((a, b) => b.progress - a.progress);
+  const ordered = [...snapshot.cars].sort((a, b) => {
+    if (a.finished && b.finished) {
+      return (a.finishPlace || 0) - (b.finishPlace || 0) || a.gridIndex - b.gridIndex;
+    }
+    if (a.finished !== b.finished) return a.finished ? -1 : 1;
+    return b.progress - a.progress || a.gridIndex - b.gridIndex;
+  });
   const me = ordered.find((car) => car.id === playerId);
   const fuelRatio = me ? Math.max(0, Math.min(1, me.fuelLiters / me.fuelCapacity)) : 0;
   document.getElementById("fuel-liters").textContent = me ? Math.max(0, me.fuelLiters).toFixed(1) : "—";
@@ -1723,7 +1729,7 @@ function updateHud() {
   } else if (snapshot.phase === "countdown") {
     showMessage(snapshot.countdown > 0 ? String(snapshot.countdown) : "GO!", "WASD / arrows to drive · space to brake");
   } else if (snapshot.phase === "finished") {
-    const place = me ? ordered.indexOf(me) + 1 : 0;
+    const place = me ? me.finishPlace || ordered.indexOf(me) + 1 : 0;
     const suffix = place === 1 ? "ST" : place === 2 ? "ND" : place === 3 ? "RD" : "TH";
     const rewardHint = lastReward
       ? `+${lastReward.credits} CR · +${lastReward.xp} XP · next grid is forming`
