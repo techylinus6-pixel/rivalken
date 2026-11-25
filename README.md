@@ -1,1 +1,1 @@
-
+rivalken is a online privacy focused browser based multiplayer game you can play it directly on your browser on rivalken.onrender.com with your friends bots fill up empty seats, if you have concerns about your privacy please view the DATA-PRIVACY.md
